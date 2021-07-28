@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:zyl_app2/global/Global.dart';
+import 'package:zyl_app2/utils/alert_utils.dart';
+import 'package:zyl_app2/viewmodel/account_viewmodel.dart';
 
 class AccountingView extends StatefulWidget {
   @override
@@ -7,15 +10,12 @@ class AccountingView extends StatefulWidget {
 }
 
 class _AccountingViewState extends State<AccountingView> {
-  List _data;
-  double _expenditure = 0;
-  double _income = 0;
-  int _mouth;
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    loadData();
+    if (context.read<AccountViewModel>().getList.length == 0) loadData();
   }
   @override
   Widget build(BuildContext context) {
@@ -67,7 +67,7 @@ class _AccountingViewState extends State<AccountingView> {
                   children: [
                     Expanded(
                       child: GestureDetector(
-                        child: Text( _mouth.toString() + "月",
+                        child: Text( Provider.of<AccountViewModel>(context).getMonth.toString() + "月",
                           style: TextStyle(
                               color: Colors.white,
                               fontSize: 16.0
@@ -82,13 +82,13 @@ class _AccountingViewState extends State<AccountingView> {
                           fontSize: 16.0
                       ),
                     )),
-                    Expanded(child: Text(_income.toString(),
+                    Expanded(child: Text(Provider.of<AccountViewModel>(context).getIncome.toString(),
                       style: TextStyle(
                           color: Colors.white,
                           fontSize: 16.0
                       ),
                     )),
-                    Expanded(child: Text(_expenditure.toString(),
+                    Expanded(child: Text(Provider.of<AccountViewModel>(context).getExpenditure.toString(),
                       style: TextStyle(
                           color: Colors.white,
                           fontSize: 16.0
@@ -110,7 +110,7 @@ class _AccountingViewState extends State<AccountingView> {
             //我们只需要在ListView.builder加入shrinkWrap: true,
             ListView.builder(
               itemBuilder: _itemBuilder,
-              itemCount: _data == null ? 0 : _data.length,
+              itemCount: Provider.of<AccountViewModel>(context).getList == null ? 0 : Provider.of<AccountViewModel>(context).getList.length,
               shrinkWrap: true
             )
           ],
@@ -126,30 +126,30 @@ class _AccountingViewState extends State<AccountingView> {
           children: [
             Expanded(
               child: Text(
-                _data[index]["date"],
+                Provider.of<AccountViewModel>(context).getList[index]["date"],
                 style: Theme.of(context).textTheme.headline6,
               ),
             ),
             Text(
-              "收入:" +  _data[index]["income"].toString(),
+              "收入:" +  Provider.of<AccountViewModel>(context).getList[index]["income"].toString(),
               style: Theme.of(context).textTheme.bodyText1,
             ),
             SizedBox(width: 8,),
             Text(
-              "支出:" +  _data[index]["expenditure"].toString(),
+              "支出:" +  Provider.of<AccountViewModel>(context).getList[index]["expenditure"].toString(),
               style: Theme.of(context).textTheme.bodyText1,
             ),
           ],
         ),),
         Divider(height: 1,),
         Column(
-          children: _childrens(_data[index]["data"]),
+          children: _childrens(Provider.of<AccountViewModel>(context).getList[index]["data"]),
         ),
       ],
     );
-    // print(_data[index]);
+    // print(Provider.of<AccountViewModel>(context).getList[index]);
     //     // return ListTile(
-    //     //   title: Text(_data[index]["date"]),
+    //     //   title: Text(Provider.of<AccountViewModel>(context).getList[index]["date"]),
     //     // );
   }
 
@@ -180,53 +180,20 @@ class _AccountingViewState extends State<AccountingView> {
       return widgets;
     }
   void loadData() async {
-    // Global.getInstance().context = context;
-    if(_mouth == null) {
-      _mouth = DateTime.now().month;
-    }
-    print(_mouth);
-    var res = await Global.getInstance().dio.get(
-        "/zxw/AccountingHistory",
-        queryParameters: {
-          "date": DateTime.now().year.toString() + (_mouth < 10 ?
-          "0" + _mouth.toString(): _mouth.toString()),
-        }
-    );
-    setState(() {
-      if(res.data["success"]) {
-        _expenditure = res.data["data"]["expenditure"];
-        _income = res.data["data"]["income"];
-        _data = res.data["data"]["data"];
-      }else {
-        _expenditure = 0;
-        _income = 0;
-        _data = [];
-        // EasyLoading.showError(res.data["msg"]);
-      }
-    });
+    context.read<AccountViewModel>().setList([]);//先清空
+    context.read<AccountViewModel>().accountingHistory();//在请求
   }
 
-    void _getMouth() {
+    void _getMouth() async {
       List list = [];
       for(var i = 1; i < 12; i++) {
         if(i <= DateTime.now().month) list.add(i);
       }
-      showDialog(context: context, builder: (context) {
-        return SimpleDialog(
-          // title: Text("选择月份"),
-            children: list.map((e) {
-              return SimpleDialogOption(
-                child: Text(e.toString()),
-                onPressed: () {
-                  _mouth = e;
-                  Navigator.pop(context);
-                  loadData();
-                },
-              );
-            }).toList()
-        );
-      },
-      barrierDismissible: false,//设置选中空白处关闭
-      );
+      var res = await showMonthList(list);
+        print(res);
+        if(res != null) {
+          context.read<AccountViewModel>().setMonth(res);
+          loadData();
+        }
     }
 }

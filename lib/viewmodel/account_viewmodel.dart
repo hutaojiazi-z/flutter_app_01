@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:zyl_app2/model/account_model.dart';
+import 'package:zyl_app2/utils/event_utils.dart';
+
 
 class AccountViewModel extends ChangeNotifier {
   List _list = [];
@@ -18,6 +20,9 @@ class AccountViewModel extends ChangeNotifier {
   }
 
   int get getMonth {
+    if (_month == null) {
+      _month = DateTime.now().month;
+    }
     return _month;
   }
 
@@ -45,7 +50,17 @@ class AccountViewModel extends ChangeNotifier {
   }
 
   void accountingHistory() async {
-    Response result = await getAccount(_month.toString());
+    Response result = await getAccount(
+      DateTime.now().year.toString() +
+          (getMonth < 10 ? "0" + getMonth.toString() : getMonth.toString())
+    );
     print(result);
+    if (result.data["success"]) {
+      setList(result.data["data"]["data"]);
+      setExpenditure(result.data["data"]["expenditure"]);
+      setIncome(result.data["data"]["income"]);
+    } else {
+      postMessage("fail", result.data["msg"]);
+    }
   }
 }
