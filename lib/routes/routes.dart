@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zyl_app2/view/accounting/accounting_add.dart';
 import 'package:zyl_app2/view/accounting/accounting_list.dart';
 import 'package:zyl_app2/view/menu-view.dart';
 import '../view/user/register-view.dart';
@@ -11,4 +12,5 @@ Map<String, WidgetBuilder> routes = {
   "register": (BuildContext context) => RegisterView(),
   "theme": (BuildContext context) => SettingsTheme(),
   "accounting": (BuildContext context) => AccountingView(),
+  "accounting/add": (BuildContext context) => AccountingAddView(),
 };

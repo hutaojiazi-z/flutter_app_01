@@ -25,7 +25,7 @@ class _AccountingViewState extends State<AccountingView> {
         centerTitle: true,
         elevation: 5,
         bottom: PreferredSize(
-          preferredSize: Size.fromHeight(80),
+          preferredSize: Size.fromHeight(80),//bottom高度
           child: Container(
             padding: EdgeInsets.all(10),
             child: Column(
@@ -116,6 +116,11 @@ class _AccountingViewState extends State<AccountingView> {
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Theme.of(context).primaryColor,
+        child: Icon(Icons.add),
+        onPressed: _add,
+      ),
     );
   }
 
@@ -196,4 +201,7 @@ class _AccountingViewState extends State<AccountingView> {
           loadData();
         }
     }
+  void _add() {
+    Navigator.of(context).pushNamed("accounting/add");
+  }
 }
