@@ -9,3 +9,14 @@ Future getAccount(String date) async {
       );
 
 }
+
+
+Future deleteAccount(String id) async {
+  return await Global.getInstance().dio.delete(
+      "/zxw/AccountingHistory",
+      queryParameters: {
+        "id": id,
+      }
+  );
+
+}

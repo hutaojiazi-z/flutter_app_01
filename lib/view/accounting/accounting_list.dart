@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:left_scroll_actions/cupertinoLeftScroll.dart';
+import 'package:left_scroll_actions/global/actionListener.dart';
+import 'package:left_scroll_actions/leftScroll.dart';
 import 'package:provider/provider.dart';
 import 'package:zyl_app2/global/Global.dart';
 import 'package:zyl_app2/utils/alert_utils.dart';
@@ -24,6 +27,14 @@ class _AccountingViewState extends State<AccountingView> {
         title: Text("记账"),
         centerTitle: true,
         elevation: 5,
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).pushNamed("accounting/chart");
+            },
+            icon: Icon(Icons.add_chart)
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(80),//bottom高度
           child: Container(
@@ -101,21 +112,12 @@ class _AccountingViewState extends State<AccountingView> {
           ),
         )
       ),
-      body: Padding(
-        padding: EdgeInsets.all(10),
-        child: Column(
-          children: [
-
-            //在Flutter开发中遇到：Vertical viewport was given unbounded height
-            //我们只需要在ListView.builder加入shrinkWrap: true,
-            ListView.builder(
-              itemBuilder: _itemBuilder,
-              itemCount: Provider.of<AccountViewModel>(context).getList == null ? 0 : Provider.of<AccountViewModel>(context).getList.length,
-              shrinkWrap: true
-            )
-          ],
-        ),
+      body: ListView.builder(
+          itemBuilder: _itemBuilder,
+          itemCount: Provider.of<AccountViewModel>(context).getList == null ? 0 : Provider.of<AccountViewModel>(context).getList.length,
+          shrinkWrap: true
       ),
+
       floatingActionButton: FloatingActionButton(
         backgroundColor: Theme.of(context).primaryColor,
         child: Icon(Icons.add),
@@ -127,58 +129,74 @@ class _AccountingViewState extends State<AccountingView> {
   Widget _itemBuilder(BuildContext context, int index) {
     return Column(
       children: [
-        Padding(padding: EdgeInsets.all(8), child: Row(
+        Padding(
+          padding: EdgeInsets.all(10),
+          child: Row(
           children: [
-            Expanded(
-              child: Text(
-                Provider.of<AccountViewModel>(context).getList[index]["date"],
-                style: Theme.of(context).textTheme.headline6,
+              Expanded(
+                child: Text(
+                  Provider.of<AccountViewModel>(context).getList[index]["date"],
+                  style: Theme.of(context).textTheme.headline6,
+                ),
               ),
-            ),
-            Text(
-              "收入:" +  Provider.of<AccountViewModel>(context).getList[index]["income"].toString(),
-              style: Theme.of(context).textTheme.bodyText1,
-            ),
-            SizedBox(width: 8,),
-            Text(
-              "支出:" +  Provider.of<AccountViewModel>(context).getList[index]["expenditure"].toString(),
-              style: Theme.of(context).textTheme.bodyText1,
-            ),
-          ],
-        ),),
+              Text(
+                "收入:" +  Provider.of<AccountViewModel>(context).getList[index]["income"].toString(),
+                style: Theme.of(context).textTheme.bodyText1,
+              ),
+              SizedBox(width: 8,),
+              Text(
+                "支出:" +  Provider.of<AccountViewModel>(context).getList[index]["expenditure"].toString(),
+                style: Theme.of(context).textTheme.bodyText1,
+              ),
+            ],
+          ),
+        ),
         Divider(height: 1,),
         Column(
           children: _childrens(Provider.of<AccountViewModel>(context).getList[index]["data"]),
         ),
       ],
     );
-    // print(Provider.of<AccountViewModel>(context).getList[index]);
-    //     // return ListTile(
-    //     //   title: Text(Provider.of<AccountViewModel>(context).getList[index]["date"]),
-    //     // );
   }
 
     List<Widget> _childrens(var datas) {
       List<Widget> widgets = [];
       for(var i=0;i<datas.length;i++) {
-        widgets.add(Row(
-          children: [
-            Icon(Icons.add),
-            SizedBox(width: 16,),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(datas[i]["type"]["action"] == 0 ? "收入" : "支出"),
-                  Text("描述：" + datas[i]["type"]["name"], style: TextStyle(
-                    color: Colors.grey,
-                  ),),
-                ],
+        widgets.add(Container(height: 8));
+        widgets.add(CupertinoLeftScroll(
+          key: Key(datas[i]["id"].toString()),
+          closeTag: LeftScrollCloseTag('TODO: your tag'),
+          bounce: true,//弹性
+          child: Row(
+            children: [
+              Icon(Icons.add),
+              SizedBox(width: 16,),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(datas[i]["type"]["action"] == 0 ? "收入" : "支出"),
+                    Text("类型：" + datas[i]["type"]["name"], style: TextStyle(
+                      color: Colors.blueGrey
+                    ),),
+                    Text("描述：" + datas[i]["desc"], style: TextStyle(
+                      color: Colors.grey,
+                    ),),
+                  ],
+                ),
               ),
+              Text(datas[i]["money"].toString())
+            ],
+          ),
+          buttons: [
+            LeftScrollItem(
+              text: '删除',
+              color: Colors.red,
+              onTap: () {
+                context.read<AccountViewModel>().delete(datas[i]["id"].toString());
+              },
             ),
-            Text(datas[i]["money"].toString())
-          ],
-        ));
+          ]));
         widgets.add(Container(height: 8,));
       }
       
@@ -195,7 +213,6 @@ class _AccountingViewState extends State<AccountingView> {
         if(i <= DateTime.now().month) list.add(i);
       }
       var res = await showMonthList(list);
-        print(res);
         if(res != null) {
           context.read<AccountViewModel>().setMonth(res);
           loadData();

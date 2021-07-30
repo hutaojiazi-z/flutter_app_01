@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zyl_app2/global/global_theme.dart';
 import 'package:zyl_app2/routes/routes.dart';
+import 'package:zyl_app2/viewmodel/account_add_viewmodel.dart';
 import 'package:zyl_app2/viewmodel/account_viewmodel.dart';
 import 'package:zyl_app2/viewmodel/login_viewmodel.dart';
 import 'package:zyl_app2/viewmodel/register_viewmodel.dart';
@@ -29,6 +30,7 @@ void main() async {
       ChangeNotifierProvider(create: (context) => themeViewModel),
       ChangeNotifierProvider(create: (context) => RegisterViewModel()),
       ChangeNotifierProvider(create: (context) => AccountViewModel()),
+      ChangeNotifierProvider(create: (context) => AccountAddViewModel()),
     ],
     child: MyApp(),
   ));

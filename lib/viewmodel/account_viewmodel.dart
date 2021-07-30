@@ -63,4 +63,14 @@ class AccountViewModel extends ChangeNotifier {
       postMessage("fail", result.data["msg"]);
     }
   }
+
+  void delete(String id) async {
+    Response result = await deleteAccount(id);
+    print(result);
+    if (result.data["success"]) {
+      await accountingHistory();
+    } else {
+      postMessage("fail", result.data["msg"]);
+    }
+  }
 }
